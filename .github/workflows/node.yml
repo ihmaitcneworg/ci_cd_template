@@ -47,4 +47,6 @@ jobs:
 
       - name: Deploy to private server
         run: |
+          docker stop ${{ inputs.image_name }} || true
+          docker rm ${{ inputs.image_name }} || true
           docker run -d --name ${{ inputs.image_name }} --restart unless-stopped -p ${{ secrets.PUBLIC_PORT }}:${{secrets.LOCAL_PORT}} ghcr.io/${{ secrets.REGISTRY_USERNAME }}/${{ inputs.image_name }}:${{ github.sha }}
