@@ -28,7 +28,7 @@ jobs:
         run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login $REGISTRY_URL -u $REGISTRY_USERNAME --password-stdin
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ghcr.io -u ${{ secrets.REGISTRY_USERNAME}} --password-stdin
 
       - name: Build and Push Docker Image
         run: |
@@ -41,7 +41,7 @@ jobs:
     needs: build-and-push
     steps:
       - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login $REGISTRY_URL -u $REGISTRY_USERNAME --password-stdin
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ghcr.io -u ${{ secrets.REGISTRY_USERNAME}} --password-stdin
 
       - name: Deploy to private server
         run: |
