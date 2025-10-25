@@ -11,12 +11,6 @@ on:
         required: true
       REGISTRY_PASSWORD:
         required: true
-      SSH_HOST:
-        required: true
-      SSH_USER:
-        required: true
-      SSH_PRIVATE_KEY:
-        required: true
       SSH_PORT:
         required: true
       PUBLIC_PORT:
@@ -25,6 +19,7 @@ on:
         required: true
 jobs:
   build-and-push:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -43,19 +38,13 @@ jobs:
           docker build -t $IMAGE:${{ github.sha }} .
           docker push $IMAGE:${{ github.sha }}
 
-  deploy-dev:
-    runs-on: ubuntu-latest
+  deploy:
+    runs-on: ${{ inputs.deploy_env == 'prod' && 'prod-runner' || 'dev-runner' }}
     needs: build-and-push
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login $REGISTRY_URL -u $REGISTRY_USERNAME --password-stdin
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            docker run -d --name ${{ inputs.image_name }} --restart unless-stopped -p ${{ secrets.PUBLIC_PORT }}:${{secrets.LOCAL_PORT}} ghcr.io/${{ secrets.REGISTRY_USERNAME }}/${{ inputs.image_name }}:${{ github.sha }}
+      - name: Deploy to private server
+        run: |
+          docker run -d --name ${{ inputs.image_name }} --restart unless-stopped -p ${{ secrets.PUBLIC_PORT }}:${{secrets.LOCAL_PORT}} ghcr.io/${{ secrets.REGISTRY_USERNAME }}/${{ inputs.image_name }}:${{ github.sha }}
