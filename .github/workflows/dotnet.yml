@@ -47,8 +47,8 @@ jobs:
 
             - name: Build .NET 8 Application
               run: |
-                  dotnet publish ${{ secrets.DOTNET_PUBLISH_CSPROJ }} -c Release -o /tmp/build/app
-                  cp ${{ secrets.URL_DOCKERFILE_2 }}/Dockerfile2 /tmp/build/Dockerfile
+                  dotnet publish IhmaUzAsa.WebApi/IhmaUzAsa.WebApi.csproj -c Release -o /tmp/build/app
+                  cp IhmaUzAsa.WebApi/Dockerfile2 /tmp/build/Dockerfile
 
             - name: Log in to GitHub Container Registry
               run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ghcr.io -u ${{ secrets.REGISTRY_USERNAME}} --password-stdin
