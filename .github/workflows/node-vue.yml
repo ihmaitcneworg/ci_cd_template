@@ -26,6 +26,7 @@ jobs:
       - name: Set image tag (short commit)
         id: vars
         run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
