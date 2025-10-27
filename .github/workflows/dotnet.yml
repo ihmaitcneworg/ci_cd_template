@@ -27,6 +27,11 @@ jobs:
               id: vars
               run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
+            - name: Set up .NET 8
+              uses: actions/setup-dotnet@v3
+              with:
+                  dotnet-version: "8.x"
+
             - name: Create and Prepare Build Directory
               run: |
                   mkdir -p /tmp/build/app
