@@ -1,0 +1,60 @@
+name: Build & Deploy to Server (Reusable)
+on:
+    workflow_call:
+        inputs:
+            image_name:
+                description: "Image name for GHCR"
+                required: true
+                type: string
+        secrets:
+            REGISTRY_USERNAME:
+                required: true
+            REGISTRY_PASSWORD:
+                required: true
+            PUBLIC_PORT:
+                required: true
+            LOCAL_PORT:
+                required: true
+jobs:
+    build-and-push:
+        name: Build and Push Docker Image
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set image tag (short commit)
+              id: vars
+              run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+            - name: Create and Prepare Build Directory
+              run: |
+                  mkdir -p /tmp/build/app
+                  echo "Using /tmp/build as build directory"
+
+            - name: Build .NET 6 Application
+              run: |
+                  dotnet publish IhmaUzAsa.WebApi/IhmaUzAsa.WebApi.csproj -c Release -o /tmp/build/app
+                  cp IhmaUzAsa.WebApi/Dockerfile2 /tmp/build/Dockerfile
+
+            - name: Log in to GitHub Container Registry
+              run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ghcr.io -u ${{ secrets.REGISTRY_USERNAME}} --password-stdin
+
+            - name: Build and Push Docker Image
+              run: |
+                  IMAGE="ghcr.io/${{ secrets.REGISTRY_USERNAME }}/${{ inputs.image_name }}"
+                  docker build -t $IMAGE:${{ github.sha }} /tmp/build
+                  docker push $IMAGE:${{ github.sha }}
+
+    deploy:
+        runs-on: ${{ inputs.deploy_env == 'prod' && 'prod-runner' || 'dev-runner' }}
+        needs: build-and-push
+        steps:
+            - name: Log in to GitHub Container Registry
+              run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ghcr.io -u ${{ secrets.REGISTRY_USERNAME}} --password-stdin
+
+            - name: Deploy to private server
+              run: |
+                  docker stop ${{ inputs.image_name }} || true
+                  docker rm ${{ inputs.image_name }} || true
+                  docker run -d --name ${{ inputs.image_name }} --restart unless-stopped -p ${{ secrets.PUBLIC_PORT }}:${{secrets.LOCAL_PORT}} ghcr.io/${{ secrets.REGISTRY_USERNAME }}/${{ inputs.image_name }}:${{ github.sha }}
