@@ -27,11 +27,21 @@ jobs:
         id: vars
         run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
+      - name: Determine Node version
+        id: node_version
+        run: |
+          if [ -f .nvmrc ]; then
+             echo "Using Node version from .nvmrc"
+             echo "version=$(cat .nvmrc)" >> $GITHUB_OUTPUT
+           else
+             echo "Using default Node 20.x"
+             echo "version=20.x" >> $GITHUB_OUTPUT
+           fi
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          # node-version: '18.x'
-          node-version-file: ".nvmrc"
+          node-version: ${{ steps.node_version.outputs.version }}
 
       - name: Install dependencies and build frontend
         run: |
