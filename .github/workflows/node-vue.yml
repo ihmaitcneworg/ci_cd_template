@@ -26,6 +26,16 @@ jobs:
       - name: Set image tag (short commit)
         id: vars
         run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # node-version: '18.x'
+          node-version-file: ".nvmrc"
+
+      - name: Install dependencies and build frontend
+        run: |
+          npm install
+          npm run build
 
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ghcr.io -u ${{ secrets.REGISTRY_USERNAME}} --password-stdin
