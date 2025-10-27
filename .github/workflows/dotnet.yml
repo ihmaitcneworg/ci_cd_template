@@ -32,12 +32,20 @@ jobs:
               with:
                   dotnet-version: "8.x"
 
+            - name: Cache NuGet packages
+              uses: actions/cache@v3
+              with:
+                  path: ~/.nuget/packages
+                  key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+                  restore-keys: |
+                      ${{ runner.os }}-nuget-
+
             - name: Create and Prepare Build Directory
               run: |
                   mkdir -p /tmp/build/app
                   echo "Using /tmp/build as build directory"
 
-            - name: Build .NET 6 Application
+            - name: Build .NET 8 Application
               run: |
                   dotnet publish IhmaUzAsa.WebApi/IhmaUzAsa.WebApi.csproj -c Release -o /tmp/build/app
                   cp IhmaUzAsa.WebApi/Dockerfile2 /tmp/build/Dockerfile
