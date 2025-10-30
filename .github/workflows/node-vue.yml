@@ -58,7 +58,11 @@ jobs:
           docker push $IMAGE:${{ github.sha }}
 
   deploy:
-    runs-on: ${{ inputs.deploy_env == 'prod' && 'prod-runner' || 'dev-runner' }}
+    runs-on: ${{ 
+     github.ref_name == 'prod' && 'prod-runner' ||
+     github.ref_name == 'prod_cloud' && 'ihmauz_cloud' ||
+     'dev-runner'
+     }}
     needs: build-and-push
     steps:
       - name: Log in to GitHub Container Registry
