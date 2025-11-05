@@ -54,7 +54,7 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           IMAGE="ghcr.io/${{ secrets.REGISTRY_USERNAME }}/${{ inputs.image_name }}"
-          docker build -t $IMAGE:${{ github.sha }} .
+          docker build -t $IMAGE:${{ github.sha }} Dockerfile_github
           docker push $IMAGE:${{ github.sha }}
 
   deploy:
